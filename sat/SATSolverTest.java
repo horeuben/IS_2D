@@ -1,15 +1,20 @@
 package com.example.IS_2D.sat;
 
 /*
-import sat.env.*;
-import sat.formula.*;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 */
 
-import com.example.IS_2D.sat.env.*;
-import com.example.IS_2D.sat.formula.*;
+import immutable.EmptyImList;
+import immutable.ImList;
+import sat.env.*;
+import sat.formula.*;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 
 public class SATSolverTest {
@@ -25,14 +30,60 @@ public class SATSolverTest {
 	
 	// TODO: add the main method that reads the .cnf file and calls SATSolver.solve to determine the satisfiability
     public static void main(String[] args) {
-        //read cnf file
-        //call satsolver
-        // make all the literals in a clause, add all clauses to form a formula
-        //print out satisfiable/not satisfiable
-        // if satisfiable output variables to BoolAssignment.txt with format of one variable per line
-        // variable no.:TRUE/FALSE
-    }
+        Formula formula = new Formula();
+        int variables = 0;
+        try (BufferedReader br = new BufferedReader(new FileReader("C:/Main/SUTD/50.001/Project-2D/Project-2D-starting/sampleCNF/smallSat.cnf"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (!(line.substring(0,1).equals("p")) && !(line.substring(0,1).equals("c"))) {
+                    Clause clause = new Clause();
+                    for (String linesplit : line.split("\\s+")) {
+                        System.out.println(linesplit);
+                        if (!linesplit.equals("0")) {
+                            if (linesplit.substring(0, 1).equals("-"))
+                                clause = clause.add(NegLiteral.make(linesplit.substring(1)));
+                            else
+                                clause = clause.add(PosLiteral.make(linesplit));
+                        }
+                    }
+                    System.out.println(clause.toString());
+                    formula.addClause(clause);
+                }
+                else if (line.substring(0,1).equals("p")) {
+                    String[] linesplit = line.split("\\s+");
+                    variables = Integer.parseInt(linesplit[2]);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        Environment env;
+        env = SATSolver.solve(formula);
+        if (env == null) {
+            System.out.println("not satisfiable");
+        }
+        else {
+            System.out.println("satisfiable");
+            try {
+                PrintWriter out = new PrintWriter(new FileWriter("C:/Main/SUTD/50.001/Project-2D/Project-2D-starting/sampleCNF/BoolAssignment.txt"));
+                for (int varnum = 1; varnum <= variables; varnum++) {
+                    Bool bool = env.get(new Variable(Integer.toString(varnum)));
+                    if (bool == Bool.TRUE) {
+                        out.println(Integer.toString(varnum) + ":TRUE");
+                    }
+                    else {
+                        out.println(Integer.toString(varnum) + ":FALSE");
+                    }
+                }
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
     public void testSATSolver1(){
     	// (a v b)
     	Environment e = SATSolver.solve(makeFm(makeCl(a,b))	);
