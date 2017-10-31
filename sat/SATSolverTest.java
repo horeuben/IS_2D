@@ -28,7 +28,6 @@ public class SATSolverTest {
 
 
 	
-	// TODO: add the main method that reads the .cnf file and calls SATSolver.solve to determine the satisfiability
     public static void main(String[] args) {
         Formula formula = new Formula();
         int variables = 0;
@@ -38,7 +37,6 @@ public class SATSolverTest {
                 if (!(line.substring(0,1).equals("p")) && !(line.substring(0,1).equals("c"))) {
                     Clause clause = new Clause();
                     for (String linesplit : line.split("\\s+")) {
-                        System.out.println(linesplit);
                         if (!linesplit.equals("0")) {
                             if (linesplit.substring(0, 1).equals("-"))
                                 clause = clause.add(NegLiteral.make(linesplit.substring(1)));
@@ -46,8 +44,7 @@ public class SATSolverTest {
                                 clause = clause.add(PosLiteral.make(linesplit));
                         }
                     }
-                    System.out.println(clause.toString());
-                    formula.addClause(clause);
+                    formula = formula.addClause(clause);
                 }
                 else if (line.substring(0,1).equals("p")) {
                     String[] linesplit = line.split("\\s+");
@@ -59,6 +56,8 @@ public class SATSolverTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        System.out.println(formula.toString());
 
         Environment env;
         env = SATSolver.solve(formula);
