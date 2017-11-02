@@ -6,15 +6,10 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 */
 
-import immutable.EmptyImList;
-import immutable.ImList;
-import sat.env.*;
-import sat.formula.*;
+import com.example.IS_2D.sat.env.*;
+import com.example.IS_2D.sat.formula.*;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 
 public class SATSolverTest {
@@ -27,18 +22,17 @@ public class SATSolverTest {
 
 
 
-	
+
 	// TODO: add the main method that reads the .cnf file and calls SATSolver.solve to determine the satisfiability
     public static void main(String[] args) {
         Formula formula = new Formula();
         int variables = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader("C:/Main/SUTD/50.001/Project-2D/Project-2D-starting/sampleCNF/smallSat.cnf"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Android\\Projects\\Infosys\\lib01\\src\\main\\java\\com\\example\\IS_2D\\sampleCNF\\largeSat.cnf"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 if (!(line.substring(0,1).equals("p")) && !(line.substring(0,1).equals("c"))) {
                     Clause clause = new Clause();
                     for (String linesplit : line.split("\\s+")) {
-                        System.out.println(linesplit);
                         if (!linesplit.equals("0")) {
                             if (linesplit.substring(0, 1).equals("-"))
                                 clause = clause.add(NegLiteral.make(linesplit.substring(1)));
@@ -46,8 +40,7 @@ public class SATSolverTest {
                                 clause = clause.add(PosLiteral.make(linesplit));
                         }
                     }
-                    System.out.println(clause.toString());
-                    formula.addClause(clause);
+                    formula = formula.addClause(clause);
                 }
                 else if (line.substring(0,1).equals("p")) {
                     String[] linesplit = line.split("\\s+");
@@ -61,14 +54,19 @@ public class SATSolverTest {
         }
 
         Environment env;
+        System.out.println("SAT solver starts!!!");
+        long started = System.nanoTime();
         env = SATSolver.solve(formula);
+        long time = System.nanoTime();
+        long timeTaken= time - started;
+        System.out.println("Time:" + timeTaken/1000000.0 + "ms");
         if (env == null) {
             System.out.println("not satisfiable");
         }
         else {
             System.out.println("satisfiable");
             try {
-                PrintWriter out = new PrintWriter(new FileWriter("C:/Main/SUTD/50.001/Project-2D/Project-2D-starting/sampleCNF/BoolAssignment.txt"));
+                PrintWriter out = new PrintWriter(new FileWriter("D:\\Android\\Projects\\Infosys\\lib01\\src\\main\\java\\com\\example\\IS_2D\\sampleCNF\\BoolAssignment.txt"));
                 for (int varnum = 1; varnum <= variables; varnum++) {
                     Bool bool = env.get(new Variable(Integer.toString(varnum)));
                     if (bool == Bool.TRUE) {
@@ -89,21 +87,21 @@ public class SATSolverTest {
     	Environment e = SATSolver.solve(makeFm(makeCl(a,b))	);
 /*
     	assertTrue( "one of the literals should be set to true",
-    			Bool.TRUE == e.get(a.getVariable())  
+    			Bool.TRUE == e.get(a.getVariable())
     			|| Bool.TRUE == e.get(b.getVariable())	);
-    	
-*/    	
+
+*/
     }
-    
-    
+
+
     public void testSATSolver2(){
     	// (~a)
     	Environment e = SATSolver.solve(makeFm(makeCl(na)));
 /*
     	assertEquals( Bool.FALSE, e.get(na.getVariable()));
-*/    	
+*/
     }
-    
+
     private static Formula makeFm(Clause... e) {
         Formula f = new Formula();
         for (Clause c : e) {
@@ -111,7 +109,7 @@ public class SATSolverTest {
         }
         return f;
     }
-    
+
     private static Clause makeCl(Literal... e) {
         Clause c = new Clause();
         for (Literal l : e) {
@@ -119,7 +117,7 @@ public class SATSolverTest {
         }
         return c;
     }
-    
-    
-    
+
+
+
 }
