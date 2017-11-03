@@ -32,6 +32,7 @@ public class SATSolver {
      * Takes a partial assignment of variables to values, and recursively
      * searches for a complete satisfying assignment.
      *
+     *
      * @param clauses
      *            formula in conjunctive normal form
      * @param env
@@ -41,44 +42,54 @@ public class SATSolver {
      *         or null if no such environment exists.
      */
     private static Environment solve(ImList<Clause> clauses, Environment env) {
-
+        Clause minClause = new Clause();
+        int smallestClauseSize = Integer.MAX_VALUE;
         if (clauses.isEmpty()){
             return env;
         }
         else {
-            Clause minClause = clauses.first();
-            int minSize = minClause.size();
-            for (Clause c : clauses) {
-                if (c.size() < minSize) {
-                    minSize = c.size();
-                    minClause = c;
-                }
-                if (c.isEmpty())
-                    return null;
-            }
 
-            Environment e;
-            Literal l = minClause.chooseLiteral();
-            if (minClause.isUnit()){
-                if (l instanceof PosLiteral)
-                    e = solve(substitute(clauses,l),env.putTrue(l.getVariable()));
-                else
-                    e = solve(substitute(clauses,l),env.putFalse(l.getVariable()));
-            }else{
-                ImList<Clause> smallClauses = substitute(clauses, l);
-                if (l instanceof PosLiteral) {
-                    e = solve(smallClauses, env.putTrue(l.getVariable()));
-//                    if (e != null)
-//                        return e;
-                    e = solve(smallClauses, env.putFalse(l.getVariable()));
-                } else {
-                    e = solve(smallClauses, env.putFalse(l.getVariable()));
-//                    if (e != null)
-//                        return e;
-                    e = solve(smallClauses, env.putTrue(l.getVariable()));
+            for (Clause c : clauses){
+                if (c.isEmpty()){
+                    return null;
+                }
+                else {
+                    if (c.size() < smallestClauseSize){
+                        smallestClauseSize = c.size();
+                        if (c.isUnit()){
+                            Environment e;
+                            minClause = c;
+                            Literal l = minClause.chooseLiteral();
+                            ImList<Clause> subC;
+                            if (l instanceof PosLiteral){
+                                e = env.putTrue(l.getVariable());
+                                subC = substitute(clauses, l);
+                            }
+                            else {
+                                e = env.putFalse(l.getVariable());
+                                subC = substitute(clauses, l);
+                            }
+                             return solve(subC, e);
+                        }
                     }
                 }
+            }
+            for (Clause c :clauses){
+                if (c.size() == smallestClauseSize){
+                    minClause = c;
+                }
+            }
+            Literal l = minClause.chooseLiteral();
+            if (l instanceof NegLiteral) {
+                l = l.getNegation();
+            }
+
+            Environment e = solve(substitute(clauses, l), env.put(l.getVariable(), Bool.TRUE));
+            if (e == null)
+                return solve(substitute(clauses, l.getNegation()), env.put(l.getVariable(), Bool.FALSE));
+            else
                 return e;
+
 
         }
     }
@@ -94,16 +105,17 @@ public class SATSolver {
      * @return a new list of clauses resulting from setting l to true
      */
     private static ImList<Clause> substitute(ImList<Clause> clauses, Literal l) {
-
-        ImList<Clause> sub = new EmptyImList<>();
+        Clause tempClause;
         for (Clause c : clauses) {
-            Clause newClause = c.reduce(l);
-            if (newClause != null) {
-                sub = sub.add(newClause);
+            if (c.contains(l) || c.contains(l.getNegation())) {
+                tempClause = c.reduce(l);
+                clauses = clauses.remove(c);
+                if (tempClause != null) {
+                    clauses = clauses.add(tempClause);
+                }
             }
         }
-        return sub;
-
+        return clauses;
     }
 
 }

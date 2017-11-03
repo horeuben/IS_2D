@@ -28,24 +28,26 @@ public class SATSolverTest {
     public static void main(String[] args) {
         Formula formula = new Formula();
         int variables = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Android\\Projects\\Infosys\\lib01\\src\\main\\java\\com\\example\\IS_2D\\sampleCNF\\largeSat.cnf"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("D:\\Android\\Projects\\Infosys\\lib01\\src\\main\\java\\com\\example\\IS_2D\\demo2d\\sat3Large.cnf"))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (!(line.substring(0,1).equals("p")) && !(line.substring(0,1).equals("c"))) {
-                    Clause clause = new Clause();
-                    for (String linesplit : line.split("\\s+")) {
-                        if (!linesplit.equals("0")) {
-                            if (linesplit.substring(0, 1).equals("-"))
-                                clause = clause.add(NegLiteral.make(linesplit.substring(1)));
-                            else
-                                clause = clause.add(PosLiteral.make(linesplit));
+                if (line.length() > 0) {
+                    line = line.trim();
+                    if (!(line.substring(0, 1).equals("p")) && !(line.substring(0, 1).equals("c"))) {
+                        Clause clause = new Clause();
+                        for (String linesplit : line.split("\\s+")) {
+                            if (!linesplit.equals("0")) {
+                                if (linesplit.substring(0, 1).equals("-"))
+                                    clause = clause.add(NegLiteral.make(linesplit.substring(1)));
+                                else
+                                    clause = clause.add(PosLiteral.make(linesplit));
+                            }
                         }
+                        formula = formula.addClause(clause);
+                    } else if (line.substring(0, 1).equals("p")) {
+                        String[] linesplit = line.split("\\s+");
+                        variables = Integer.parseInt(linesplit[2]);
                     }
-                    formula = formula.addClause(clause);
-                }
-                else if (line.substring(0,1).equals("p")) {
-                    String[] linesplit = line.split("\\s+");
-                    variables = Integer.parseInt(linesplit[2]);
                 }
             }
         } catch (FileNotFoundException e) {
@@ -53,6 +55,8 @@ public class SATSolverTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+       // System.out.println(formula.toString());
 
         Environment env;
         System.out.println("SAT solver starts!!!");
@@ -67,7 +71,7 @@ public class SATSolverTest {
         else {
             System.out.println("satisfiable\n"+env);
             try {
-                PrintWriter out = new PrintWriter(new FileWriter("D:\\Android\\Projects\\Infosys\\lib01\\src\\main\\java\\com\\example\\IS_2D\\sampleCNF\\BoolAssignment.txt"));
+                PrintWriter out = new PrintWriter(new FileWriter("D:\\Android\\Projects\\Infosys\\lib01\\src\\main\\java\\com\\example\\IS_2D\\demo2d\\BoolAssignment.txt"));
                 for (int varnum = 1; varnum <= variables; varnum++) {
                     Bool bool = env.get(new Variable(Integer.toString(varnum)));
                     if (bool == Bool.TRUE) {
