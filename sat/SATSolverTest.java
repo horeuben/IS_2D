@@ -65,7 +65,7 @@ public class SATSolverTest {
             System.out.println("not satisfiable");
         }
         else {
-            System.out.println("satisfiable");
+            System.out.println("satisfiable\n"+env);
             try {
                 PrintWriter out = new PrintWriter(new FileWriter("D:\\Android\\Projects\\Infosys\\lib01\\src\\main\\java\\com\\example\\IS_2D\\sampleCNF\\BoolAssignment.txt"));
                 for (int varnum = 1; varnum <= variables; varnum++) {
